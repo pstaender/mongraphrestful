@@ -35,7 +35,7 @@ Also there is **no security / acl / auth** implemented, so this api should never
 
   # load mongraphrestful, pass through the neo4j and mongoose handler
   mongraphRESTful = require("mongraphrestful")
-  mongraphRESTful.init { mongoose: mongoose, neo4j: graphdb }
+  mongraphRESTful.init { mongoose: mongoose, neo4j: graphdb, namespace: '/api/v1/' }
 
   # Define your schemas as usual
   Person = mongoose.model("Person", name: String)

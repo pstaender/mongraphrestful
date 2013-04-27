@@ -304,7 +304,7 @@ class MongraphRestful
 
   _options:
     dbhandler: {}
-    namespace: '/db/'
+    namespace: '/'
 
   _routes:
     'GET:             :collection_name/*':                                                               MongraphRoutes::all_documents
@@ -317,11 +317,7 @@ class MongraphRestful
     'GET|DELETE:      :collection_from/:_id_from/relationships/:direction/:type':                        MongraphRoutes::relationships
     'GET|DELETE:      :collection_from/:_id_from/relationships/:direction/:collection_to/:_id_to/:type': MongraphRoutes::relationships
     'POST:            :collection_from/:_id_from/relationship/:direction/:collection_to/:_id_to/:type':  MongraphRoutes::relationships
-    'GET|PUT|DELETE:  relationship/:id':                                                                 MongraphRoutes::relationship # TODO: implement
-
-
-  middleware: (req, res, next) ->
-    next() if typeof next is 'function'
+    'GET|PUT|DELETE:  relationship/:id':                                                                 MongraphRoutes::relationship
 
   routes: (routes) ->
     _.extend(@_routes, routes) if routes
