@@ -1,0 +1,36 @@
+{
+  "name": "mongraphrestful",
+  "description": "MongraphRESTful - Provides a restful database service with help from mongoose, neo4j and mongraph",
+  "version": "0.0.1",
+  "author": "Philipp Staender <philipp.staender@gmail.com>",
+  "homepage": "https://github.com/pstaender/mongraphrestful/",
+  "main": "./src/mongraphrestful",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com:pstaender/mongraphrestful.git"
+  },
+  "scripts": {
+    "testmap": "coffee --map -cb test src && mocha; npm run clean",
+    "test": "mocha --compilers coffee:coffee-script",
+    "clean": "find src test -name '*.js' -delete -o -name '*.map' -delete"
+  },
+  "dependencies": {
+    "mongraph": "*",
+    "underscore": "~1.4",
+    "join": "*",
+    "coffee-script": "~1.6.1"
+  },
+  "devDependencies": {
+    "express": "3.1.1",
+    "jade": "*",
+    "mocha": "~1.9",
+    "expect.js": "~0.2",
+    "should": "~1.2",
+    "mongoose": "~3.6",
+    "neo4j": "~0.2",
+    "docco": "~0.6",
+    "groc": "~0.4",
+    "source-map-support": "~0.1.2",
+    "request": "*"
+  }
+}
