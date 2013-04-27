@@ -8,7 +8,7 @@ Provides a restful (database-like) service to manage documents with graph relati
 
 Should demonstrate that **mongodb** and **neo4j** can work together as one service (-> mongraph[RESTful]).
 
-## Gotchas
+## Issues
 
 There are no performance and benchmark tests made, yet -> so there is room for improvement ;)
 
@@ -54,7 +54,7 @@ Also there is **no security / acl / auth** implemented, so this api should never
   # THIS IS WHERE THE ROUTES ARE APPLIED TO YOUR EXPRESSJS APP
   # ------>
   
-  app.use mongraphRESTful.middleware
+  mongraphRESTful.applyRoutes(app)
   
   # <------
 
@@ -65,6 +65,12 @@ Also there is **no security / acl / auth** implemented, so this api should never
 ```
 
 ## Available Routes
+
+* `:collection_name` could be `people` for instance
+* `:_id`, `:_id_from` and `:_id_to` ObjectID(s) of your document(s)
+* `:direction` can be `incoming`, `outgoing` or `all`
+* `:type` could be `knows` for instance
+* `:id` is an integer number for a relationship in neo4j
 
 ```
   GET:             :collection_name
