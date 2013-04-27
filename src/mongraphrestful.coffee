@@ -207,10 +207,10 @@ class MongraphRoutes
         MongraphRoutes::responseWith req, res, err, document, { asList: false, context: modelName }
 
   create_document: (req, res) ->
-    {model,parameters,data} = MongraphRoutes::extractFromRequest(req)
+    {model,parameters,data,modelName} = MongraphRoutes::extractFromRequest(req)
     document = new model(data)
     document.save (err, created) ->
-      MongraphRoutes::responseWith req, res, err, document, { statusCode: 201, asList: false }#, { headers: Location: 'not implemented', asList: false }
+      MongraphRoutes::responseWith req, res, err, document, { statusCode: 201, asList: false, context: modelName }
 
 
   relationships: (req, res) ->
@@ -224,6 +224,8 @@ class MongraphRoutes
     
     # additionally needed parameters for this method
     {type,direction} = req.sortedParams
+
+    type ?= '*'
 
     join = Join.create()
 
@@ -314,6 +316,7 @@ class MongraphRestful
     'GET:             :collection_name/:_id':                                                            MongraphRoutes::get_document
     'DELETE:          :collection_name/:_id':                                                            MongraphRoutes::remove_document
     'PUT:             :collection_name/:_id':                                                            MongraphRoutes::update_document
+    'GET|DELETE:      :collection_from/:_id_from/relationships/:direction':                              MongraphRoutes::relationships
     'GET|DELETE:      :collection_from/:_id_from/relationships/:direction/:type':                        MongraphRoutes::relationships
     'GET|DELETE:      :collection_from/:_id_from/relationships/:direction/:collection_to/:_id_to/:type': MongraphRoutes::relationships
     'POST:            :collection_from/:_id_from/relationship/:direction/:collection_to/:_id_to/:type':  MongraphRoutes::relationships

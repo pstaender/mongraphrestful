@@ -13,9 +13,7 @@ displayServerRequest = false
 namespace = "/db/"
 baseHref = baseUrl+"db/"
 
-
 #### TESTAPPLICATION
-
 
 express = require("express")
 http = require("http")
@@ -28,7 +26,7 @@ neo4j = require("neo4j")
 graphdb = new neo4j.GraphDatabase("http://localhost:7474")
 
 mongraphRESTful = require("../src/mongraphrestful")
-mongraphRESTful.init { mongoose: mongoose, neo4j: graphdb }
+mongraphRESTful.init { mongoose: mongoose, neo4j: graphdb, namespace: namespace }
 
 Person = mongoose.model("Person", name: String)
 
@@ -41,7 +39,9 @@ app.use express.favicon()
 app.use express.logger("dev") if displayServerRequest
 app.use express.bodyParser()
 app.use express.methodOverride()
-app.use mongraphRESTful.middleware
+#### apply -->
+mongraphRESTful.applyRoutes(app)
+#### <-- apply
 app.use app.router
 app.use express.static(path.join(__dirname, "/../public"))
 
@@ -76,11 +76,13 @@ describe 'mongraph restful', ->
       request.post { url: fullUrlFor('/people'), body: JSON.stringify(b), headers: { 'Content-Type': 'application/json' } }, (err, res2) ->
         # on the first run we can't make a request, so we catch the parsing error and don't set alice
         try
-          alice = JSON.parse(res1.body)?.data
-          bob   = JSON.parse(res2.body)?.data
+          alice = JSON.parse(res1.body)?.person
+          bob   = JSON.parse(res2.body)?.person
         catch error
           alice = null
           bob   = null
+        expect(alice._id).not.to.be null
+        expect(bob._id).not.to.be null
         done()
 
   describe 'utils', ->
@@ -92,13 +94,6 @@ describe 'mongraph restful', ->
         mongraphRESTful.utils.optimizeValuesOnObject(data)
         expect(data.test.key).to.be.an RegExp
         expect(data.test.key.test('test')).to.be true
-
-  describe 'init', ->
-  
-    it 'expect to apply all routes on the express app', ->
-      list = mongraphRESTful.applyRoutes(app)
-      expect(list).to.be.an Array
-
   
   describe 'routes', ->
  
