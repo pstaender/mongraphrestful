@@ -166,6 +166,16 @@ class MongraphRoutes
     else
       res.send 'not found', options?.statusCode || 404
 
+  collections: (req, res) ->
+    collections = {}
+    for modelName of _dbhandler.mongoose.models # { ok: true }
+      model = _dbhandler.mongoose.models[modelName]
+      collectionName = model.collection.name
+      collections[collectionName] =
+        modelName: modelName
+        schema: model.schema.paths
+    res.json collections
+
   all_documents: (req, res, next, options = {}) ->
     {collectionName,collection,where} = MongraphRoutes::extractFromRequest(req)
     options.context ?= collectionName
@@ -309,18 +319,19 @@ class MongraphRestful
     namespace: '/'
 
   _routes:
-    'GET:             :collection_name/*':                                                               MongraphRoutes::all_documents
-    'GET:             :collection_name/one/*':                                                           MongraphRoutes::one_document
-    'DELETE:          :collection_name':                                                                 MongraphRoutes::remove_all_documents
-    'POST:            :collection_name':                                                                 MongraphRoutes::create_document
-    'GET:             :collection_name/:_id':                                                            MongraphRoutes::get_document
-    'DELETE:          :collection_name/:_id':                                                            MongraphRoutes::remove_document
-    'PUT:             :collection_name/:_id':                                                            MongraphRoutes::update_document
-    'GET|DELETE:      :collection_from/:_id_from/relationships/:direction':                              MongraphRoutes::relationships
-    'GET|DELETE:      :collection_from/:_id_from/relationships/:direction/:type':                        MongraphRoutes::relationships
-    'GET|DELETE:      :collection_from/:_id_from/relationships/:direction/:collection_to/:_id_to/:type': MongraphRoutes::relationships
-    'POST:            :collection_from/:_id_from/relationship/:direction/:collection_to/:_id_to/:type':  MongraphRoutes::relationships
-    'GET|PUT|DELETE:  relationship/:id':                                                                 MongraphRoutes::relationship
+    'GET:             collections':                                                                       MongraphRoutes::collections
+    'GET:             :collection_name/*':                                                                MongraphRoutes::all_documents
+    'GET:             :collection_name/one/*':                                                            MongraphRoutes::one_document
+    'DELETE:          :collection_name':                                                                  MongraphRoutes::remove_all_documents
+    'POST:            :collection_name':                                                                  MongraphRoutes::create_document
+    'GET:             :collection_name/:_id':                                                             MongraphRoutes::get_document
+    'DELETE:          :collection_name/:_id':                                                             MongraphRoutes::remove_document
+    'PUT:             :collection_name/:_id':                                                             MongraphRoutes::update_document
+    'GET|DELETE:      :collection_from/:_id_from/relationships/:direction':                               MongraphRoutes::relationships
+    'GET|DELETE:      :collection_from/:_id_from/relationships/:direction/:type':                         MongraphRoutes::relationships
+    'GET|DELETE:      :collection_from/:_id_from/relationships/:direction/:collection_to/:_id_to/:type':  MongraphRoutes::relationships
+    'POST:            :collection_from/:_id_from/relationship/:direction/:collection_to/:_id_to/:type':   MongraphRoutes::relationships
+    'GET|PUT|DELETE:  relationship/:id':                                                                  MongraphRoutes::relationship
 
   routes: (routes) ->
     _.extend(@_routes, routes) if routes

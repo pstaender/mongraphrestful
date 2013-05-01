@@ -102,6 +102,13 @@ describe 'mongraph restful', ->
         expect(res.statusCode).to.be 200
         done()
 
+    it 'expect to get all collections with schema listed', (done) ->
+      request.get fullUrlFor('/collections'), (err, res) ->
+        body = JSON.parse(res.body)
+        expect(err).to.be.null
+        expect(body.people.schema.name.instance).to.be 'String'
+        done()
+
     it 'expect to get all documents of a collection', (done) ->
       request.get fullUrlFor('/people'), (err, res) ->
         expect(res.statusCode).to.be 200
