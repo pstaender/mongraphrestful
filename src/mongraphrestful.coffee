@@ -38,10 +38,13 @@ class MongraphDocuments
   documentToObject: (doc) ->
     # TODO: type check
     # mongoose document
-    doc = doc.toObject()#document.documentToObjectOptions()
+    document = doc.toObject({ virtuals: true })
+    # wtf?! TODO: check double nested notation...
+    document._collection = doc.collection?.collection?.collectionName
     # delete doc._relationships ?= null
-    delete doc.__v
-    doc
+    delete document.__v
+    delete document.id
+    document
 
   documentToJson: (document, cb) ->
     
@@ -95,7 +98,7 @@ class MongraphDocuments
 class MongraphRoutes
 
   extractFromRequest: (req) ->
-    limit = skip = collectionName = collectionTo = collectionFrom = collection = model = parameters = body = data = where = _id = _idFrom = _idTo = null
+    limit = skip = collectionName = collectionTo = collectionFrom = collection = model = parameters = body = data = where_document = where_relationship = _id = _idFrom = _idTo = null
     body       = req?.body      
     parameters = req?.sortedParams
     if parameters
@@ -116,20 +119,20 @@ class MongraphRoutes
 
         if req.body?[modelName.toLowerCase()]
           data = req.body?[modelName.toLowerCase()]
-      {limit,where,skip} = req.query
+      {limit,skip} = req.query
       # prefer where from header form if given
-      where = req.headers?.where if req.headers?.where
+      where_document = req.headers?.where_document if req.headers?.where_document
       # prefer *more* where query from body if given
-      where = body.where if body.where
-      if typeof where is 'string'
+      where_document = body.where_document if body.where_document
+      if typeof where_document is 'string'
         try
-          where = JSON.parse(where)
+          where_document = JSON.parse(where_document)
         catch e
-          where = {}
-        MongraphUtil::optimizeValuesOnObject(where)
+          where_document = {}
+        MongraphUtil::optimizeValuesOnObject(where_document)
       # TODO: maybe to an opt out for disabling where statements?!
-    where ?= {}
-    {collectionName, collectionTo, collectionFrom, collection, parameters, where, body, model, modelName, data, _idFrom, _idTo, _id}
+    where_document ?= {}
+    {collectionName, collectionTo, collectionFrom, collection, parameters, where_document, body, model, modelName, data, _idFrom, _idTo, _id}
 
   responseWith: (req, res, err, data, options = {}) ->
     # make to lowercase because mongoose is using CamelCase for model name
@@ -177,14 +180,14 @@ class MongraphRoutes
     res.json collections
 
   all_documents: (req, res, next, options = {}) ->
-    {collectionName,collection,where} = MongraphRoutes::extractFromRequest(req)
+    {collectionName,collection,where_document} = MongraphRoutes::extractFromRequest(req)
     options.context ?= collectionName
     options.asList  ?= if options.oneDocument is true then false else true
     if collection
       # find or findOne ?
       findMethod = if options.oneDocument then 'findOne' else 'find'
-      where ?= {}
-      collection[findMethod] where, (err, docs) ->
+      where_document ?= {}
+      collection[findMethod] where_document, (err, docs) ->
         MongraphRoutes::responseWith req, res, err, docs, options
     else
       res.send 'collection not found', 404
@@ -193,9 +196,10 @@ class MongraphRoutes
     {modelName} = MongraphRoutes::extractFromRequest(req)
     MongraphRoutes::all_documents req, res, undefined, { oneDocument: true, context: modelName }
 
-  remove_all_documents: (req, res) ->
-    {collection} = MongraphRoutes::extractFromRequest(req)
-    collection.remove {}, (err, count) ->
+  remove_documents: (req, res) ->
+    {collection,where_document} = MongraphRoutes::extractFromRequest(req)
+    where_document ?= {}
+    collection.remove where_document, (err, count) ->
       MongraphRoutes::responseWith req, res, null, count, { statusCode: if count > 0 then 204 else 404 }
 
   get_document: (req, res) ->
@@ -322,7 +326,7 @@ class MongraphRestful
     'GET:             collections':                                                                       MongraphRoutes::collections
     'GET:             :collection_name/*':                                                                MongraphRoutes::all_documents
     'GET:             :collection_name/one/*':                                                            MongraphRoutes::one_document
-    'DELETE:          :collection_name':                                                                  MongraphRoutes::remove_all_documents
+    'DELETE:          :collection_name':                                                                  MongraphRoutes::remove_documents
     'POST:            :collection_name':                                                                  MongraphRoutes::create_document
     'GET:             :collection_name/:_id':                                                             MongraphRoutes::get_document
     'DELETE:          :collection_name/:_id':                                                             MongraphRoutes::remove_document

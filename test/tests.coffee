@@ -141,7 +141,7 @@ describe 'mongraph restful', ->
           request.get
             url: fullUrlFor('/people')
             headers:
-              where: JSON.stringify(where)
+              where_document: JSON.stringify(where)
           , (err, res) ->
             body = JSON.parse(res.body)
             expect(body.people[0].name).be.equal 'New Name'
